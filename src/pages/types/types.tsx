@@ -9,5 +9,4 @@ export type StackParamList = {
   Subject: undefined;
   Test: undefined;
   UpdateProfile: undefined;
-  Report: undefined;
 };

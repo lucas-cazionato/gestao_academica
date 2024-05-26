@@ -3,7 +3,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Modal, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-const Subject = () => {
+const Subject: React.FC = () => {
     const navigation = useNavigation();
     const [subjectInput, setSubjectInput] = useState<string>('');
     const [subjects, setSubjects] = useState<string[]>([]);
