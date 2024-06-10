@@ -1,81 +1,84 @@
-import React, { useState } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { StackParamList } from './types/types';
-import { Table, TableWrapper, Row, Rows, Col } from 'react-native-table-component';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { listarDisciplinas } from '../api/disciplina';
+import styles from './styles/styles';
+import { Table, Row, Rows } from 'react-native-table-component';
+import eventEmitter from './events/eventEmitter';
+
+// Definindo a interface para os dados de disciplina
+interface Disciplina {
+  DISCIPLINA: string;
+  NOTA: number;
+}
 
 const Grade: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<StackParamList>>();
+  const [idUsuario, setIdUsuario] = useState<string | null>(null);
+  const [listaDisciplinas, setListaDisciplinas] = useState<Disciplina[]>([]);
 
-  const [tableHead, setTableHead] = useState(['Disciplina', 'Atividade', 'Nota']);
-  const [tableData, setTableData] = useState([
-    ['Dev de Aplicações Corporativas', 'Prova1\nProva2\nTrabalho da Disciplina', '20\n20\n60'],
-    ['Gestão de Empresas', 'Prova 1\nProva2', '50\n50'],
-    ['Dev Dispositivos Móveis', 'Seminário\nTrabalho da Disciplina', '40\n60'],
-    ['Inteligência Artificial Aplicada', 'Seminário\nProva\nTrabalho', '30\n30\n40'],
-    ['Engenharia de Software II', 'Prova 1\nProva2\nTrabalho', '40\n40\n20'],
-    ['Interação Humano Computador', 'Trabalho\nProva', '60\n40'],
-    ['TCC I', 'Entrega', '95']
+  useEffect(() => {
+    const getUserId = async () => {
+      const userId = await AsyncStorage.getItem('userId');
+      setIdUsuario(userId);
+    };
+    getUserId();
+  }, []);
+
+  useEffect(() => {
+    const fetchDisciplinas = async () => {
+        if (idUsuario) {
+            try {
+                const disciplinas = await listarDisciplinas(idUsuario);
+                setListaDisciplinas(disciplinas);
+            } catch (error) {
+                console.error('Erro ao buscar disciplinas:', error);
+            }
+        }
+    };
+    fetchDisciplinas();
+
+    // Ouve os eventos emitidos pelo EventEmitter
+    const listener = () => {
+        fetchDisciplinas();
+    };
+    eventEmitter.on('disciplinaAtualizada', listener);
+
+    // Limpa o listener quando o componente é desmontado
+    return () => {
+        eventEmitter.off('disciplinaAtualizada', listener);
+    };
+  }, [idUsuario]);
+
+  const tableHead = ['Disciplina', 'Nota'];
+  const widthArr = [260, 100]; // Largura fixa para cada coluna
+
+  const tableData = listaDisciplinas.map((disciplina) => [
+    disciplina.DISCIPLINA,
+    disciplina.NOTA,
   ]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>EduCare</Text>
+          <Text style={styles.headerText}>EduCare</Text>
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>Notas por Disciplina</Text>
-        <Table borderStyle={{borderWidth: 2, borderColor: '#c8e1ff'}}>
-          <Row data={tableHead} style={styles.head} textStyle={styles.text}/>
-          <Rows data={tableData} textStyle={styles.text}/>
-        </Table>
+        <Text style={styles.contentText}>Notas por Disciplina</Text>
       </View>
+      <View style={styles.content}>
+          <View style={styles.tableContainer}>
+              <Table borderStyle={styles.tableBorder} style={styles.table}>
+                  <Row data={tableHead} style={styles.tableHead} textStyle={styles.tableHeadText} widthArr={widthArr}/>
+                  <Rows data={tableData} textStyle={styles.rowText} widthArr={widthArr}/>
+              </Table>
+          </View>
+      </View>    
       <View style={styles.footer}>
-        <Text style={styles.footerText}>EduCare &copy; 2024</Text>
+          <Text>EduCare &copy; 2024</Text>
       </View>
     </SafeAreaView>
+    
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  content: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  head: {
-    height: 50,
-    backgroundColor: '#f1f8ff',
-  },
-  row: {
-    backgroundColor: '#FFF'
-  },
-  text: {
-    textAlign: 'center',
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  footerText: {
-    fontSize: 16,
-  },
-});
 
 export default Grade;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Assigment from '../Assigment';
 import Frequency from '../Frequency';
@@ -10,14 +11,21 @@ import Schedule from '../Schedule';
 import Subject from '../Subject';
 import Test from '../Test';
 import UpdateProfile from '../UpdateProfile';
+import { StackParamList } from '../types/types';
 
 const Drawer = createDrawerNavigator();
 
 const NavBar: React.FC = () => {
+  const navigation = useNavigation<NavigationProp<StackParamList>>();
+
+  const handleLogout = () => {
+    navigation.navigate('Login');
+  };
+  
   return (
     <Drawer.Navigator initialRouteName="Página Inicial">
       <Drawer.Screen name="Página Inicial" component={Home} 
-        options={{ 
+        options={{
           drawerLabel: 'Página Inicial', 
           drawerIcon: ({ color, size }) => (<Ionicons name="home" size={size} color={color} />), 
         }}
@@ -32,12 +40,6 @@ const NavBar: React.FC = () => {
         options={{ 
           drawerLabel: 'Disciplinas', 
           drawerIcon: ({ color, size }) => (<Ionicons name="library" size={size} color={color} />), 
-        }}
-      />
-      <Drawer.Screen name="Calendário" component={Schedule}
-        options={{ 
-          drawerLabel: 'Calendário', 
-          drawerIcon: ({ color, size }) => (<Ionicons name="calendar" size={size} color={color} />), 
         }}
       />
       <Drawer.Screen name="Notas" component={Grade}
@@ -68,6 +70,9 @@ const NavBar: React.FC = () => {
         options={{ 
           drawerLabel: 'Sair', 
           drawerIcon: ({ color, size }) => (<Ionicons name="log-out" size={size} color={color} />), 
+        }}
+        listeners={{
+          drawerItemPress: handleLogout, // Chama a função de logout ao pressionar o botão
         }}
       />
     </Drawer.Navigator>

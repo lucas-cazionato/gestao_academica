@@ -13,13 +13,18 @@ import Subject from './pages/Subject';
 import Test from './pages/Test';
 import UpdateProfile from './pages/UpdateProfile';
 import NavBar from './pages/navbar/NavBar';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  'Failed prop type: Invalid prop `textStyle` of type `array` supplied to `Cell`, expected `object`'
+]);
 
 const Stack = createNativeStackNavigator();
 
 const App: React.FC = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="NavBar" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Assigment" component={Assigment} />
         <Stack.Screen name="Frequency" component={Frequency} />
         <Stack.Screen name="Grade" component={Grade} />

@@ -9,4 +9,11 @@ export type StackParamList = {
   Subject: undefined;
   Test: undefined;
   UpdateProfile: undefined;
+  NavBar: undefined;
+  'Atualizar Perfil': undefined;
+  Disciplinas: undefined;
+  Notas: undefined;
+  Frequência: undefined;
+  Provas: undefined;
+  Trabalhos: undefined;
 };
