@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_URL = 'http://192.168.0.75:3000/api';
+import { API_URL } from './api';
 
 export const listarProvas = async (id) => {
     try {
