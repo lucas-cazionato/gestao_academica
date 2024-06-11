@@ -4,6 +4,7 @@ import { Alert, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 're
 import { StackParamList } from './types/types';
 import { createUser } from '../api/user';
 import styles from './styles/styles'
+import { TextInputMask } from 'react-native-masked-text';
 
 const Register: React.FC = () => {
   const [nome, setNome] = useState('');
@@ -59,11 +60,15 @@ const Register: React.FC = () => {
           onChangeText={setEmail}
         />
         <Text style={styles.contentText}>Telefone:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Digite seu telefone"
+        <TextInputMask
+          type={'cel-phone'}
+          options={{
+            maskType: 'BRL',
+            withDDD: true,
+          }}
           value={telefone}
           onChangeText={setTelefone}
+          style={styles.input}
         />
         <Text style={styles.contentText}>Senha:</Text>
         <TextInput

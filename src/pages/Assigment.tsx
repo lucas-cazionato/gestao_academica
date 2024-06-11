@@ -1,263 +1,257 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Alert, Modal, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { listarTrabalhos, removerTrabalho, criarAtividade } from '../api/atividade';
+import { listarDisciplinas } from '../api/disciplina';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Button, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import DatePicker from 'react-native-date-picker';
+import styles from './styles/styles';
 import { Table, Row, Rows } from 'react-native-table-component';
+import eventEmitter from './events/eventEmitter';
+import moment from 'moment';
+import { Picker } from '@react-native-picker/picker';
+import { TextInputMask } from 'react-native-masked-text';
+
+interface Atividade {    
+    TIPO: "TRABALHO";
+    DESCRICAO: string;
+    PESO: number;
+    DATA: string;
+    DISCIPLINA: string;
+}
+
+interface Disciplina {
+    DISCIPLINA: string;
+}
 
 const Assigment: React.FC = () => {
-  const [selectedSubject, setSelectedSubject] = useState('Desenvolvimento de Aplicações Corporativas');
-  const [assigments, setAssigments] = useState<string[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [date, setDate] = useState(new Date());
-  const [open, setOpen] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalExclusaoVisible, setModalExclusaoVisible] = useState(false);
 
-  const [tableHead, setTableHead] = useState(['Disciplina', 'Descrição', 'Peso', 'Data de Entrega']);
-  const [tableData, setTableData] = useState([
-    ['Dev de Aplicações Corporativas', 'Exercícios Assíncronos I', '-', '12/05/2024'],
-    ['Dev de Aplicações Corporativas', 'Exercícios Assíncronos II', '-', '24/06/2024'],
-    ['Dev de Aplicações Corporativas', 'Trabalho da Disciplina', '60', '24/06/2024'],
-    ['Dev Dispositivos Móveis', 'Trabalho da Disciplina', '50', '11/06/2024'],
-    ['Inteligência Artificial Aplicada', 'Seminário', '30', '22/06/2024'],
-    ['Inteligência Artificial Aplicada', 'Trabalho da Disciplina', '40', '22/06/2024'],
-    ['Engenharia de Software II', 'Trabalho da Disciplina', '20', '12/06/2024'],
-    ['Interação Humano Computador', 'Trabalho da Disciplina', '40', '13/06/2024'],
-    ['Trabalho de Conclusão de Curso I', 'TCC I', '100', '20/06/2024'],
-  ]);
+    const [idUsuario, setIdUsuario] = useState<string | null>(null);
+    const [indice, setIndice] = useState<number | null>(null);
 
-  const handleAddAssigment = () => {
-    setModalVisible(false);
-    // Add your logic to add the assigment
-  };
+    const [listaAtividades, setListaAtividades] = useState<Atividade[]>([]);
+    const [atividade, setAtividade] = useState('');
+    const [descricao, setDescricao] = useState('');    
+    const [peso, setPeso] = useState('');
+    const [data, setData] = useState('');
 
-  const handleConsultAssigment = () => {
-    setModalVisible(false);
-    // Add your logic to consult the assigment
-  };
+    const [listaDisciplinas, setListaDisciplinas] = useState<Disciplina[]>([]);
+    const [disciplinaSelecionada, setDisciplinaSelecionada] = useState('');
 
-  const handleDeleteAssigment = () => {
-    setModalVisible(false);
-    // Add your logic to delete the assigment
-  };
+    useEffect(() => {
+        const getUserId = async () => {
+            const userId = await AsyncStorage.getItem('userId');
+            setIdUsuario(userId);
+        };
+        getUserId();
+    }, []);
 
-  const ModalContent = () => (
-    <View style={styles.modalContent}>
-      <View style={styles.closeButtonContainer}>
-        <TouchableOpacity onPress={() => setModalVisible(false)}>
-          <Ionicons name="close-circle" size={35} color="#FF6347" />
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.label}>Disciplina:</Text>
-      <Picker
-        selectedValue={selectedSubject}
-        style={styles.picker}
-        onValueChange={(itemValue) => setSelectedSubject(itemValue)}
-      >
-        <Picker.Item label="Desenvolvimento de Aplicações Corporativas" value="Desenvolvimento de Aplicações Corporativas" />
-        <Picker.Item label="Gestão de Empresas" value="Gestão de Empresas" />
-        <Picker.Item label="Desenvolvimento para Dispositivos Móveis" value="Desenvolvimento para Dispositivos Móveis" />
-        <Picker.Item label="Engenharia de Software II" value="Engenharia de Software II" />
-        <Picker.Item label="Inteligência Artificial Aplicada" value="Inteligência Artificial Aplicada" />
-        <Picker.Item label="Interação Humano Computador" value="Interação Humano Computador" />
-        <Picker.Item label="Trabalho de Conclusão de Curso I" value="Trabalho de Conclusão de Curso I" />
-      </Picker>
-  
-      <Text style={styles.label}>Descrição:</Text>
-      <TextInput style={styles.textInput} />
-  
-      <Text style={styles.label}>Peso:</Text>
-      <TextInput
-        style={styles.textInput}
-        keyboardType='numeric'
-        maxLength={3}
-      />
-  
-      <Text style={styles.label}>Data de Entrega:</Text>
-      <Text style={styles.selectedDateText}>
-        {date.toLocaleDateString('pt-BR')}
-      </Text>
-      <DatePicker
-        mode="date"
-        modal
-        open={open}
-        date={date}
-        onConfirm={(selectedDate) => {
-          setOpen(false);
-          setDate(selectedDate);
-        }}
-        onCancel={() => {
-          setOpen(false);
-        }}
-      />
-      <TouchableOpacity onPress={() => setOpen(true)} style={styles.dateButton}>
-        <Ionicons name="calendar" size={24} color="#4682B4" />
-      </TouchableOpacity>
-      
-      <TouchableOpacity style={styles.submitButton} onPress={handleAddAssigment}>
-        <Text style={styles.submitButtonText}>Adicionar</Text>
-      </TouchableOpacity>
-    </View>
-  );  
+    useEffect(() => {
+        const fetchTests = async () => {
+            if (idUsuario) {
+                try {
+                    const atividades = await listarTrabalhos(idUsuario);
+                    setListaAtividades(atividades);
+                } catch (error) {
+                    console.error('Erro ao buscar trabalhos:', error);
+                }
+            }
+        };
+        fetchTests();
+    }, [idUsuario]);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>EduCare</Text>
-      </View>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Trabalhos</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
-          <Text style={styles.addButtonText}>Adicionar Atividade</Text>
-        </TouchableOpacity>
-        <View style={styles.tableContainer}>
-          <Table borderStyle={styles.tableBorder}>
-            <Row data={tableHead} style={styles.head} textStyle={styles.headText} />
-            <Rows data={tableData} textStyle={styles.rowText} />
-          </Table>
+    useEffect(() => {
+        const fetchDisciplinas = async () => {
+            if (idUsuario) {
+                try {
+                    const disciplinas = await listarDisciplinas(idUsuario);
+                    setListaDisciplinas(disciplinas);
+                } catch (error) {
+                    console.error('Erro ao buscar disciplinas:', error);
+                }
+            }
+        };
+        fetchDisciplinas();
+    
+        // Ouve os eventos emitidos pelo EventEmitter
+        const listener = () => {
+            fetchDisciplinas();
+        };
+        eventEmitter.on('disciplinaAtualizada', listener);
+    
+        // Limpa o listener quando o componente é desmontado
+        return () => {
+            eventEmitter.off('disciplinaAtualizada', listener);
+        };
+      }, [idUsuario]);
+
+    const tableHead = ['Disciplina', 'Atividade', 'Peso', 'Data', 'Ações'];
+    const widthArr = [90, 80, 50, 75, 65]; // Largura fixa para cada coluna
+
+    const tableData = listaAtividades.map((atividade, index) => [
+        atividade.DISCIPLINA,
+        atividade.DESCRICAO,
+        atividade.PESO,
+        moment(atividade.DATA, 'YYYY-MM-DD').format('DD/MM/YY').toString(),
+        <View key={index} style={styles.content}>
+            <TouchableOpacity onPress={() => {
+                setIndice(index);  // Atualiza o índice
+                setModalExclusaoVisible(true);
+            }}>
+                <Ionicons name="trash-outline" size={25} color="red" />
+            </TouchableOpacity>
         </View>
-      </ScrollView>
-      <View style={styles.footer}>
-        <Text>EduCare &copy; 2024</Text>
-      </View>
-      <Modal
-        animationType="slide"
-        transparent
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContentContainer}>
-            <ModalContent />
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
-  );
-};
+    ]);
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  headerText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#4682B4',
-  },
-  content: {
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-  },
-  title: {
-    fontSize: 22,
-    marginBottom: 20,
-    color: '#333',
-  },
-  addButton: {
-    backgroundColor: '#4682B4',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-    width: '70%',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  tableContainer: {
-    width: '100%',
-    marginTop: 10,
-  },
-  tableBorder: {
-    borderWidth: 1,
-    borderColor: '#c8e1ff',
-  },
-  head: {
-    height: 50,
-    backgroundColor: '#4682B4',
-  },
-  headText: {
-    margin: 6,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: 'white',
-  },
-  rowText: {
-    margin: 6,
-    textAlign: 'center',
-  },
-  footer: {
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContentContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    elevation: 5,
-    width: '80%',
-  },
-  modalContent: {
-    alignItems: 'center',
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-  },
-  textInput: {
-    width: '100%',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 10,
-    marginVertical: 10,
-    backgroundColor: '#f9f9f9',
-  },
-  submitButton: {
-    backgroundColor: '#4CAF50',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  submitButtonText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  closeButtonContainer: {
-    alignSelf: 'flex-end',
-  },
-  label: {
-    alignSelf: 'flex-start',
-    marginBottom: 5,
-    color: '#333',
-    fontSize: 16,
-  },
-  selectedDateText: {
-    fontSize: 16,
-    marginVertical: 10,
-    color: '#333',
-  },
-  dateButton: {
-    marginTop: 5,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-});
+    const acaoCriarTrabalho = async () => {    
+        try {
+            if (!idUsuario ) return;
+            const novoTrabalho: Atividade = {
+                TIPO: "TRABALHO",
+                DESCRICAO: descricao,
+                PESO: parseFloat(peso),
+                DATA: moment(data, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                DISCIPLINA: disciplinaSelecionada,
+            };
+            await criarAtividade(novoTrabalho);
+            setDisciplinaSelecionada('');
+            setDescricao('');
+            setPeso('');
+            setData('');
+            Alert.alert('Trabalho cadastrado com sucesso!');
+            setModalVisible(false);
+            const atividadesAtualizadas = await listarTrabalhos(idUsuario);
+            setListaAtividades(atividadesAtualizadas);
+        } catch (error) {
+            console.error('Erro ao cadastrar a prova:', error);
+            Alert.alert('Erro ao cadastrar a prova. Por favor, tente novamente.');
+        }
+    };
+
+    const acaoExcluirTrabalho = async (index: number) => {
+        try {
+            if (!idUsuario || index < 0) return;
+    
+            const disciplinaExcluir = listaAtividades[index].DISCIPLINA;
+            const atividadeExcluir = listaAtividades[index].DESCRICAO;
+            await removerTrabalho(idUsuario, disciplinaExcluir, atividadeExcluir);
+            
+            Alert.alert('Trabalho removido com sucesso!');
+            setModalExclusaoVisible(false);
+            const atividadesAtualizadas = await listarTrabalhos(idUsuario);
+            setListaAtividades(atividadesAtualizadas);
+        } catch (error) {
+            console.error('Erro ao remover o trabalho:', error);
+            Alert.alert('Erro ao remover o trabalho. Por favor, tente novamente.');
+        }
+    };
+
+    return (
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerText}>EduCare</Text>
+            </View>
+            <View style={styles.content}>
+                <Text style={styles.contentText}>Trabalhos</Text>
+                <TouchableOpacity style={styles.button} onPress={() => {
+                    setModalVisible(true);
+                    if (listaDisciplinas.length > 0) {
+                        setDisciplinaSelecionada(listaDisciplinas[0].DISCIPLINA);
+                    } else {
+                        setDisciplinaSelecionada('');
+                    }
+                }}>
+                    <Text style={styles.buttonText}>Adicionar Trabalho</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={styles.content}>
+                <View style={styles.tableContainer}>
+                    <Table borderStyle={styles.tableBorder} style={styles.table}>
+                        <Row data={tableHead} style={styles.tableHead} textStyle={styles.tableText} widthArr={widthArr}/>
+                        <Rows data={tableData} textStyle={styles.rowTableText} widthArr={widthArr}/>
+                    </Table>
+                </View>
+            </View>            
+            <View style={styles.footer}>
+                <Text>EduCare &copy; 2024</Text>
+            </View>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalExclusaoVisible}
+                onRequestClose={() => {
+                    setModalExclusaoVisible(!modalExclusaoVisible);
+                }}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContentContainer}>
+                        <Text style={styles.contentText}>Confirma exclusão do Trabalho?</Text>
+                        <TouchableOpacity onPress={() => acaoExcluirTrabalho(indice)} style={styles.button}>
+                            <Text style={styles.buttonText}>Sim</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={() => setModalExclusaoVisible(!modalExclusaoVisible)}>
+                            <Text style={styles.buttonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContentContainer}>
+                        <Text style={styles.contentText}>Disciplina:</Text>
+                        <Picker
+                            selectedValue={disciplinaSelecionada}
+                            style={styles.picker}
+                            onValueChange={(itemValue) => setDisciplinaSelecionada(itemValue)}
+                        >
+                            {listaDisciplinas.map((disciplina, index) => (
+                                <Picker.Item
+                                    style={styles.contentText}
+                                    key={index} 
+                                    label={disciplina.DISCIPLINA} 
+                                    value={disciplina.DISCIPLINA} 
+                                />
+                            ))}
+                        </Picker>
+                        <Text style={styles.contentText}>Descrição:</Text>
+                        <TextInput style={styles.inputModal} value={descricao} onChangeText={setDescricao}/>
+                        <Text style={styles.contentText}>Peso:</Text>
+                        <TextInput keyboardType="numeric" style={styles.inputModal} value={peso} onChangeText={setPeso}/>
+                        <Text style={styles.contentText}>Data (dd/mm/aaaa):</Text>
+                        <TextInputMask
+                            type={'datetime'}
+                            options={{
+                                format: 'DD/MM/YYYY'
+                            }}
+                            value={data}
+                            onChangeText={setData}
+                            style={styles.inputModal}
+                        />
+                        <TouchableOpacity onPress={() => acaoCriarTrabalho()} style={styles.button}>
+                            <Text style={styles.buttonText}>Adicionar Trabalho</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={() => setModalVisible(!modalVisible)}>
+                            <Text style={styles.buttonText}>Fechar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            
+        </SafeAreaView>
+    );
+
+}
 
 export default Assigment;

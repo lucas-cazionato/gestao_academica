@@ -33,7 +33,7 @@ const Login: React.FC = () => {
         <Text style={styles.headerText}>EduCare</Text>
       </View>
       <View style={styles.content}>
-        <Text style={styles.contentText}>Usuário:</Text>
+        <Text style={styles.contentText}>Usuário (E-mail):</Text>
         <TextInput
           style={styles.input}
           placeholder="Digite seu usuário"

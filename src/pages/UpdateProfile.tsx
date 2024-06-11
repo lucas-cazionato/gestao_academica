@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchUserById, updateUser } from '../api/user';
-import styles from './styles/styles'
+import styles from './styles/styles';
+import { TextInputMask } from 'react-native-masked-text';
 
 const UpdateProfile: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -61,7 +62,16 @@ const UpdateProfile: React.FC = () => {
         <Text style={styles.contentText}>E-mail:</Text>
         <TextInput style={styles.input} value={email} editable={false} onChangeText={setEmail} />
         <Text style={styles.contentText}>Telefone:</Text>
-        <TextInput style={styles.input} value={telefone} onChangeText={setTelefone} />
+        <TextInputMask
+          type={'cel-phone'}
+          options={{
+            maskType: 'BRL',
+            withDDD: true,
+          }}
+          value={telefone}
+          onChangeText={setTelefone}
+          style={styles.input}
+        />
         <Text style={styles.contentText}>Senha:</Text>
         <TextInput
           style={styles.input}

@@ -147,7 +147,21 @@ const styles = StyleSheet.create({
     picker: {
         height: 50,
         width: '100%',
-        fontSize: 24,
+    },
+    rowTableText: {
+        margin: 6,
+        textAlign: 'center',
+        fontSize: 14,
+        color:'black',
+        marginTop: 10,
+        marginBottom: 10,
+    },
+    tableText: {
+        margin: 6,
+        fontWeight: '600',
+        textAlign: 'center',
+        color: 'white',
+        fontSize: 14,
     },
 });
 
