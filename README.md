@@ -30,7 +30,7 @@ node index.js
 ```
 
 ### Passo 3: Iniciar a Aplicação
-1. Navegue até a pasta raiz do projeto:
+1. Em outro terminal, navegue até a pasta raiz do projeto:
 ```bash
 cd ~/GestaoAcademica
 ```
